@@ -1,0 +1,3 @@
+displayName = Universal Combat Tracker Interface
+author = Alexander Dorn &lt;ad@not.one&gt;
+version = 0.1
