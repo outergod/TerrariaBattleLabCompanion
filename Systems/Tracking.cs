@@ -10,9 +10,9 @@ using Terraria.ModLoader;
 
 namespace CombatTracker.Systems
 {
-    public class Logging : ModSystem
+    public class Tracking : ModSystem
     {
-        private static Logging _singleton;
+        private static Tracking _singleton;
         private static JsonSerializerOptions _serializeOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower
@@ -53,7 +53,7 @@ namespace CombatTracker.Systems
             try
             {
                 _writer = new StreamWriter(log, append: true, encoding: Encoding.UTF8);
-                Log("load", new { player, world });
+                Track("load", new { player, world });
             }
             catch (Exception ex)
             {
@@ -82,11 +82,12 @@ namespace CombatTracker.Systems
 
         private void ShutDown()
         {
+            Track("load", new { Main.LocalPlayer.name, Main.worldName });
             _writer.Flush();
             _writer.Close();
         }
 
-        public static void Log<T>(string @event, T data)
+        public static void Track<T>(string @event, T data)
         {
             if (_singleton == null)
                 return;
