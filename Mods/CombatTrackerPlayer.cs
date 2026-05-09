@@ -1,17 +1,17 @@
 using Terraria;
 using Terraria.ModLoader;
-using CombatTracker.Domain;
-using CombatTracker.Systems;
+using BattleLabCompanion.Domain;
+using BattleLabCompanion.Systems;
 
-namespace CombatTracker.Mods
+namespace BattleLabCompanion.Mods
 {
-    public class CombatTrackerPlayer : ModPlayer
+    public class BattleLabCompanionPlayer : ModPlayer
     {
         public override void OnHitByNPC(NPC npc, Terraria.Player.HurtInfo hurtInfo)
         {
             string attacker = npc.TypeName;
             string victim = Player.name;
-            string weapon = "melee";
+            string weapon = "Touch";
 
             var @event = new DamageEvent
             {

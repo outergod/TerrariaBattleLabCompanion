@@ -1,9 +1,9 @@
 using Terraria;
 using Terraria.ModLoader;
-using CombatTracker.Domain;
-using CombatTracker.Systems;
+using BattleLabCompanion.Domain;
+using BattleLabCompanion.Systems;
 
-namespace CombatTracker.Globals
+namespace BattleLabCompanion.Globals
 {
     public class CombatProvenanceGlobalNPC : GlobalNPC
     {

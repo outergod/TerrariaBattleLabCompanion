@@ -2,7 +2,7 @@ using Terraria;
 using Terraria.ModLoader;
 using Terraria.DataStructures;
 
-namespace CombatTracker.Globals
+namespace BattleLabCompanion.Globals
 {
     public class CombatProvenanceGlobalProjectile : GlobalProjectile
     {

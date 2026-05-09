@@ -1,14 +1,14 @@
 using Terraria;
 using Terraria.ModLoader;
-using CombatTracker.Domain;
-using CombatTracker.Systems;
+using BattleLabCompanion.Domain;
+using BattleLabCompanion.Systems;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using Terraria.DataStructures;
 using Terraria.ModLoader.IO;
 using System.IO;
 
-namespace CombatTracker.Globals
+namespace BattleLabCompanion.Globals
 {
     public class CombatTrackerGlobalProjectile : GlobalProjectile
     {

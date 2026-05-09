@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 using Terraria;
 using Terraria.ModLoader;
 
-namespace CombatTracker.Systems
+namespace BattleLabCompanion.Systems
 {
     public class Tracking : ModSystem
     {
@@ -45,7 +45,7 @@ namespace CombatTracker.Systems
         {
             var player = Main.LocalPlayer.name;
             var world = Main.worldName;
-            var target = Path.Combine(Main.SavePath, "Mods", "CombatTracker", player, world);
+            var target = Path.Combine(Main.SavePath, "Mods", "BattleLabCompanion", player, world);
             Directory.CreateDirectory(target);
             var timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
             var log = Path.Combine(target, $"{timestamp}.jsonl");
@@ -57,7 +57,7 @@ namespace CombatTracker.Systems
             }
             catch (Exception ex)
             {
-                Main.NewText($"[CombatTracker] Failed to initialize Logger: {ex.Message}", Color.Red);
+                Main.NewText($"[BattleLabCompanion] Failed to initialize Logger: {ex.Message}", Color.Red);
             }
         }
 
@@ -74,7 +74,7 @@ namespace CombatTracker.Systems
                     }
                     catch (Exception ex)
                     {
-                        Main.NewText($"[CombatTracker] Failed to write log entry: {ex.Message}", Color.Red);
+                        Main.NewText($"[BattleLabCompanion] Failed to write log entry: {ex.Message}", Color.Red);
                     }
                 }
             });
@@ -82,7 +82,7 @@ namespace CombatTracker.Systems
 
         private void ShutDown()
         {
-            Track("load", new { Main.LocalPlayer.name, Main.worldName });
+            Track("unload", new { Main.LocalPlayer.name, Main.worldName });
             _writer.Flush();
             _writer.Close();
         }
@@ -95,7 +95,7 @@ namespace CombatTracker.Systems
             var o = new
             {
                 timestamp = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture),
-                @event,
+                type = @event,
                 data,
             };
 

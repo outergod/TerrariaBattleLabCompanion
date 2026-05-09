@@ -1,4 +1,4 @@
-namespace CombatTracker.Domain
+namespace BattleLabCompanion.Domain
 {
     public class DamageEvent
     {
