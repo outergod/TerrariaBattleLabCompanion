@@ -26,6 +26,8 @@ public sealed class CombatProvenanceGlobalProjectile : GlobalProjectile
 
     public string? CastId;
 
+    public Via? ViaTail;
+
     public override void OnSpawn(Projectile projectile, IEntitySource source)
     {
         ProjectileType = projectile.type;
@@ -71,7 +73,18 @@ public sealed class CombatProvenanceGlobalProjectile : GlobalProjectile
         SourceItemType ??= parentProv.SourceItemType;
         SourceAmmoType ??= parentProv.SourceAmmoType;
         CastId ??= parentProv.CastId;
-        return parentProv.EntityLocalId;
+
+        ViaTail = new Via
+        {
+            Kind = ViaKind.Projectile,
+            Name = Lang.GetProjectileName(parent.type).Value,
+            Id = parentProv.EntityLocalId,
+            Owner = parentProv.SourceEntityId,
+            Weapon = parentProv.SourceItemType is int it ? Lang.GetItemNameValue(it) : null,
+            Intermediate = parentProv.ViaTail,
+        };
+
+        return parentProv.SourceEntityId;
     }
 
     private void EmitDeclare(Projectile projectile)

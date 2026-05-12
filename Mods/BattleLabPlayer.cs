@@ -182,6 +182,7 @@ public sealed class BattleLabPlayer : ModPlayer
             Id = prov.EntityLocalId,
             Owner = prov.SourceEntityId,
             Weapon = prov.SourceItemType is int it ? Lang.GetItemNameValue(it) : null,
+            Intermediate = prov.ViaTail,
         };
         return (prov.SourceEntityId ?? EnvIds.Unknown, via, DamageKind.Hit);
     }

@@ -58,6 +58,7 @@ public sealed class DamageHookGlobalProjectile : GlobalProjectile
         Id = prov.EntityLocalId,
         Owner = prov.SourceEntityId,
         Weapon = prov.SourceItemType is int it ? Lang.GetItemNameValue(it) : null,
+        Intermediate = prov.ViaTail,
     };
 
 }
