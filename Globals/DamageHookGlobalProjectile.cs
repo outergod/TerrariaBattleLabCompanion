@@ -17,7 +17,7 @@ public sealed class DamageHookGlobalProjectile : GlobalProjectile
 
         var overkill = target.GetGlobalNPC<DamageHookGlobalNPC>().ComputeOverkill(damageDone);
 
-        Tracking.Emit(EventType.Damage, new DamageData
+        var seq = Tracking.Emit(EventType.Damage, new DamageData
         {
             Actor = prov.SourceEntityId,
             Target = targetId,
@@ -46,6 +46,8 @@ public sealed class DamageHookGlobalProjectile : GlobalProjectile
                 },
             },
         });
+
+        prov.LastDamageSeq = seq;
     }
 
     private static Via BuildVia(Projectile projectile, CombatProvenanceGlobalProjectile prov) => new()

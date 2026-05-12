@@ -22,6 +22,8 @@ public sealed class CombatProvenanceGlobalProjectile : GlobalProjectile
     public EntityKind Kind { get; private set; }
     public string? EntityLocalId { get; private set; }
 
+    public uint? LastDamageSeq;
+
     public override void OnSpawn(Projectile projectile, IEntitySource source)
     {
         ProjectileType = projectile.type;
