@@ -27,8 +27,36 @@ internal static class BuffDiff
             }
         }
 
+        foreach (var (type, prevTime) in prev)
+        {
+            if (!current.ContainsKey(type))
+            {
+                var targetId = resolveTarget();
+                if (targetId is not null) EmitRemove(targetId, type, prevTime);
+            }
+        }
+
         prev.Clear();
         foreach (var (t, time) in current) prev[t] = time;
+    }
+
+    private static void EmitRemove(string targetId, int buffType, int prevTime)
+    {
+        Tracking.Emit(EventType.StatusRemove, new StatusRemoveData
+        {
+            Target = targetId,
+            Status = Lang.GetBuffName(buffType),
+            Kind = Main.debuff[buffType] ? StatusKind.Debuff : StatusKind.Buff,
+            Reason = prevTime <= 1 ? StatusRemoveReason.Expired : StatusRemoveReason.Removed,
+            X = new JsonObject
+            {
+                ["terraria"] = new JsonObject
+                {
+                    ["buffType"] = buffType,
+                    ["prevFramesRemaining"] = prevTime,
+                },
+            },
+        });
     }
 
     private static void EmitApply(string targetId, int buffType, int durationFrames)
