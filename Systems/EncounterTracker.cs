@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
+using BattleLabCompanion.Globals;
 using BattleLabCompanion.Wire;
 using BattleLabCompanion.Wire.Payloads;
 using Terraria;
@@ -82,6 +83,51 @@ public sealed class EncounterTracker : ModSystem
         Poll("event:slime-rain",     Main.slimeRain,    EncounterKind.Event,    "Slime Rain");
         Poll("invasion:ooa",         DD2Event.Ongoing,  EncounterKind.Invasion, "Old One's Army");
         PollInvasion();
+
+        var tick = Main.GameUpdateCount;
+        if (tick % 60 == 0) EmitBossSnapshots();
+        if (tick % 300 == 0 && _stack.Count > 0) EmitPlayerSnapshots();
+    }
+
+    private void EmitBossSnapshots()
+    {
+        for (int i = 0; i < Main.npc.Length; i++)
+        {
+            var npc = Main.npc[i];
+            if (!npc.active || !npc.boss) continue;
+            var id = npc.GetGlobalNPC<EntityIdGlobalNPC>().EntityLocalId;
+            if (id is null || !_memberToFamily.ContainsKey(id)) continue;
+
+            Tracking.Emit(EventType.ResourceSnapshot, new ResourceSnapshotData
+            {
+                Entity = id,
+                Resources = new[]
+                {
+                    new ResourceTuple { Kind = "hp", Value = Math.Max(0, npc.life), Max = npc.lifeMax },
+                },
+            });
+        }
+    }
+
+    private static void EmitPlayerSnapshots()
+    {
+        for (int i = 0; i < Main.player.Length; i++)
+        {
+            var player = Main.player[i];
+            if (!player.active || player.dead) continue;
+            var id = EntityRegistry.Resolve(player);
+            if (id is null) continue;
+
+            Tracking.Emit(EventType.ResourceSnapshot, new ResourceSnapshotData
+            {
+                Entity = id,
+                Resources = new[]
+                {
+                    new ResourceTuple { Kind = "hp",   Value = player.statLife, Max = player.statLifeMax2 },
+                    new ResourceTuple { Kind = "mana", Value = player.statMana, Max = player.statManaMax2 },
+                },
+            });
+        }
     }
 
     private void Poll(string key, bool active, EncounterKind kind, string name)
