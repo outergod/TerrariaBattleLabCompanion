@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using BattleLabCompanion.Wire;
 using BattleLabCompanion.Wire.Payloads;
 using Terraria;
+using Terraria.GameContent.Events;
 using Terraria.ID;
 using Terraria.ModLoader;
 
@@ -42,6 +43,7 @@ public sealed class EncounterTracker : ModSystem
 
     private readonly Dictionary<int, Active> _byFamily = new();
     private readonly Dictionary<string, int> _memberToFamily = new();
+    private readonly Dictionary<string, string> _byEventKey = new();
     private readonly Stack<string> _stack = new();
 
     public static string? ActiveEncounterId =>
@@ -54,18 +56,89 @@ public sealed class EncounterTracker : ModSystem
     {
         _byFamily.Clear();
         _memberToFamily.Clear();
+        _byEventKey.Clear();
         _stack.Clear();
     }
 
     public override void OnWorldUnload()
     {
         foreach (var active in new List<Active>(_byFamily.Values))
-        {
             EmitEnd(active.Id, EncounterOutcome.Abandoned, EncounterEndCause.WorldExit);
-        }
+        foreach (var id in new List<string>(_byEventKey.Values))
+            EmitEnd(id, EncounterOutcome.Abandoned, EncounterEndCause.WorldExit);
         _byFamily.Clear();
         _memberToFamily.Clear();
+        _byEventKey.Clear();
         _stack.Clear();
+    }
+
+    public override void PostUpdateWorld()
+    {
+        if (_singleton is null) return;
+        Poll("event:blood-moon",     Main.bloodMoon,    EncounterKind.Event,    "Blood Moon");
+        Poll("event:pumpkin-moon",   Main.pumpkinMoon,  EncounterKind.Event,    "Pumpkin Moon");
+        Poll("event:frost-moon",     Main.snowMoon,     EncounterKind.Event,    "Frost Moon");
+        Poll("event:solar-eclipse",  Main.eclipse,      EncounterKind.Event,    "Solar Eclipse");
+        Poll("event:slime-rain",     Main.slimeRain,    EncounterKind.Event,    "Slime Rain");
+        Poll("invasion:ooa",         DD2Event.Ongoing,  EncounterKind.Invasion, "Old One's Army");
+        PollInvasion();
+    }
+
+    private void Poll(string key, bool active, EncounterKind kind, string name)
+    {
+        var isActive = _byEventKey.ContainsKey(key);
+        if (active && !isActive) StartGeneric(key, kind, name);
+        else if (!active && isActive) EndGeneric(key, EncounterOutcome.Victory, EncounterEndCause.AllMembersDead);
+    }
+
+    private void PollInvasion()
+    {
+        const string key = "invasion:current";
+        var t = Main.invasionType;
+        var present = t != InvasionID.None;
+        var tracked = _byEventKey.ContainsKey(key);
+
+        if (present && !tracked)
+        {
+            var name = t switch
+            {
+                InvasionID.GoblinArmy => "Goblin Army",
+                InvasionID.SnowLegion => "Frost Legion",
+                InvasionID.PirateInvasion => "Pirate Invasion",
+                InvasionID.MartianMadness => "Martian Madness",
+                _ => "Invasion",
+            };
+            StartGeneric(key, EncounterKind.Invasion, name, new JsonObject
+            {
+                ["terraria"] = new JsonObject { ["invasionType"] = t },
+            });
+        }
+        else if (!present && tracked)
+        {
+            EndGeneric(key, EncounterOutcome.Victory, EncounterEndCause.AllMembersDead);
+        }
+    }
+
+    private void StartGeneric(string key, EncounterKind kind, string name, JsonObject? x = null)
+    {
+        var encounterId = $"enc:{Guid.NewGuid():N}";
+        _byEventKey[key] = encounterId;
+        _stack.Push(encounterId);
+        Tracking.Emit(EventType.EncounterStart, new EncounterStartData
+        {
+            Id = encounterId,
+            Kind = kind,
+            Name = name,
+            X = x,
+        });
+    }
+
+    private void EndGeneric(string key, EncounterOutcome outcome, EncounterEndCause cause)
+    {
+        if (!_byEventKey.TryGetValue(key, out var id)) return;
+        EmitEnd(id, outcome, cause);
+        _byEventKey.Remove(key);
+        RemoveFromStack(_stack, id);
     }
 
     public static void OnBossSpawn(NPC npc, string entityLocalId)
