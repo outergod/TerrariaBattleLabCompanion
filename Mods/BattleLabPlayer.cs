@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using BattleLabCompanion.Globals;
@@ -6,6 +7,7 @@ using BattleLabCompanion.Wire;
 using BattleLabCompanion.Wire.Payloads;
 using Terraria;
 using Terraria.DataStructures;
+using Terraria.ID;
 using Terraria.ModLoader;
 
 namespace BattleLabCompanion.Mods;
@@ -14,6 +16,15 @@ public sealed class BattleLabPlayer : ModPlayer
 {
     private int? _preHitLife;
     private readonly Dictionary<int, int> _prevBuffs = new();
+
+    private static readonly HashSet<int> ChanneledItems = new()
+    {
+        ItemID.LastPrism,
+    };
+
+    public string? CurrentCastId { get; private set; }
+    private int _prevItemAnim;
+    private bool _castBegan;
 
     public override void OnEnterWorld()
     {
@@ -66,6 +77,7 @@ public sealed class BattleLabPlayer : ModPlayer
             Crit = false,
             Kind = kind,
             Overkill = overkill,
+            CastId = ExtractCastId(via),
             Via = via,
             Position = new Position
             {
@@ -106,6 +118,60 @@ public sealed class BattleLabPlayer : ModPlayer
         BuffDiff.EmitTransitions(_prevBuffs, Player.buffType, Player.buffTime, () => EntityRegistry.Resolve(Player));
     }
 
+    public override void PostUpdate()
+    {
+        var anim = Player.itemAnimation;
+        var heldItem = Player.HeldItem;
+        var itemType = heldItem?.type ?? 0;
+
+        var isStarting = _prevItemAnim == 0 && anim > 0;
+        var isEnding = _prevItemAnim > 0 && anim == 0;
+
+        if (isStarting)
+        {
+            CurrentCastId = $"cast:{Guid.NewGuid():N}";
+            if (heldItem is not null && ChanneledItems.Contains(itemType))
+            {
+                EmitCastBegin(heldItem);
+                _castBegan = true;
+            }
+        }
+
+        if (isEnding)
+        {
+            if (_castBegan) EmitCastEnd(CastEndReason.Released);
+            _castBegan = false;
+            CurrentCastId = null;
+        }
+
+        _prevItemAnim = anim;
+    }
+
+    private void EmitCastBegin(Item item)
+    {
+        var actor = EntityRegistry.Resolve(Player);
+        if (actor is null || CurrentCastId is null) return;
+
+        Tracking.Emit(EventType.CastBegin, new CastBeginData
+        {
+            Id = CurrentCastId,
+            Actor = actor,
+            Ability = Lang.GetItemNameValue(item.type),
+            Position = new Position { X = Player.position.X, Y = Player.position.Y },
+        });
+    }
+
+    private void EmitCastEnd(CastEndReason reason)
+    {
+        if (CurrentCastId is null) return;
+
+        Tracking.Emit(EventType.CastEnd, new CastEndData
+        {
+            Id = CurrentCastId,
+            Reason = reason,
+        });
+    }
+
     private static (string? actorId, Via? via, DamageKind kind) ResolveProjectileSource(Projectile projectile)
     {
         var prov = projectile.GetGlobalProjectile<CombatProvenanceGlobalProjectile>();
@@ -118,5 +184,14 @@ public sealed class BattleLabPlayer : ModPlayer
             Weapon = prov.SourceItemType is int it ? Lang.GetItemNameValue(it) : null,
         };
         return (prov.SourceEntityId ?? EnvIds.Unknown, via, DamageKind.Hit);
+    }
+
+    private static string? ExtractCastId(Via? via)
+    {
+        // No castId on player-target side from raw Via; the source projectile's
+        // prov.CastId is the source of truth and would need to be plumbed
+        // through ResolveProjectileSource. Defer to follow-up.
+        _ = via;
+        return null;
     }
 }

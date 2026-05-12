@@ -25,6 +25,7 @@ public sealed class DamageHookGlobalProjectile : GlobalProjectile
             Crit = hit.Crit,
             Kind = DamageKind.Hit,
             Overkill = overkill,
+            CastId = prov.CastId,
             Via = BuildVia(projectile, prov),
             Position = new Position
             {

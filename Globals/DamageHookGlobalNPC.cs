@@ -37,6 +37,7 @@ public sealed class DamageHookGlobalNPC : GlobalNPC
         if (actorId is null || targetId is null) return;
 
         var overkill = ComputeOverkill(damageDone);
+        var castId = player.GetModPlayer<Mods.BattleLabPlayer>().CurrentCastId;
 
         Tracking.Emit(EventType.Damage, new DamageData
         {
@@ -46,6 +47,7 @@ public sealed class DamageHookGlobalNPC : GlobalNPC
             Crit = hit.Crit,
             Kind = DamageKind.Hit,
             Overkill = overkill,
+            CastId = castId,
             Position = new Position
             {
                 X = player.position.X,

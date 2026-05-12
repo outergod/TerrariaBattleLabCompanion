@@ -24,6 +24,8 @@ public sealed class CombatProvenanceGlobalProjectile : GlobalProjectile
 
     public uint? LastDamageSeq;
 
+    public string? CastId;
+
     public override void OnSpawn(Projectile projectile, IEntitySource source)
     {
         ProjectileType = projectile.type;
@@ -33,12 +35,14 @@ public sealed class CombatProvenanceGlobalProjectile : GlobalProjectile
         {
             SourceEntityId = EntityRegistry.Resolve(itemUse.Player);
             SourceItemType = itemUse.Item?.type;
+            CastId = itemUse.Player?.GetModPlayer<Mods.BattleLabPlayer>().CurrentCastId;
         }
         else if (source is EntitySource_ItemUse_WithAmmo itemUseAmmo)
         {
             SourceEntityId = EntityRegistry.Resolve(itemUseAmmo.Player);
             SourceItemType = itemUseAmmo.Item?.type;
             SourceAmmoType = itemUseAmmo.AmmoItemIdUsed;
+            CastId = itemUseAmmo.Player?.GetModPlayer<Mods.BattleLabPlayer>().CurrentCastId;
         }
         else if (source is EntitySource_Parent parent)
         {
@@ -49,6 +53,8 @@ public sealed class CombatProvenanceGlobalProjectile : GlobalProjectile
                 Projectile pj => PropagateFromParentProjectile(pj),
                 _ => null,
             };
+            if (parent.Entity is Player parentPlayer)
+                CastId = parentPlayer.GetModPlayer<Mods.BattleLabPlayer>().CurrentCastId;
         }
 
         EntityLocalId = EntityRegistry.Instance?.Mint(Kind);
@@ -64,6 +70,7 @@ public sealed class CombatProvenanceGlobalProjectile : GlobalProjectile
         var parentProv = parent.GetGlobalProjectile<CombatProvenanceGlobalProjectile>();
         SourceItemType ??= parentProv.SourceItemType;
         SourceAmmoType ??= parentProv.SourceAmmoType;
+        CastId ??= parentProv.CastId;
         return parentProv.EntityLocalId;
     }
 
