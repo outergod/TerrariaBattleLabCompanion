@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text.Json.Nodes;
 using BattleLabCompanion.Globals;
 using BattleLabCompanion.Systems;
@@ -12,6 +13,7 @@ namespace BattleLabCompanion.Mods;
 public sealed class BattleLabPlayer : ModPlayer
 {
     private int? _preHitLife;
+    private readonly Dictionary<int, int> _prevBuffs = new();
 
     public override void OnEnterWorld()
     {
@@ -97,6 +99,11 @@ public sealed class BattleLabPlayer : ModPlayer
             Player p => (EntityRegistry.Resolve(p), null, DamageKind.Hit),
             _ => (EnvIds.Unknown, null, DamageKind.Environmental),
         };
+    }
+
+    public override void PostUpdateBuffs()
+    {
+        BuffDiff.EmitTransitions(_prevBuffs, Player.buffType, Player.buffTime, () => EntityRegistry.Resolve(Player));
     }
 
     private static (string? actorId, Via? via, DamageKind kind) ResolveProjectileSource(Projectile projectile)
