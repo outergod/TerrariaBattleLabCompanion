@@ -126,6 +126,11 @@ public sealed class Tracking : ModSystem
             try
             {
                 s._writer.WriteLine(JsonSerializer.Serialize(ev, JsonOpts));
+                // Per spec D1: flush after every WriteLine. The tailer-based
+                // ingest assumes sub-100ms visibility; StreamWriter.Flush()
+                // pushes the char buffer through to the FileStream and then
+                // calls FileStream.Flush() so inotify/fsnotify watchers fire
+                // on the next OS scheduling slice.
                 s._writer.Flush();
             }
             catch (Exception ex)
