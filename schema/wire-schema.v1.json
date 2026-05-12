@@ -1,0 +1,1600 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Event",
+  "description": "One wire event.\n\nEvery JSONL line in a Battle Lab log is one of these. The envelope\nfields are closed (`deny_unknown_fields`); per-event extensions go\ninside `data.x.*`.",
+  "type": "object",
+  "properties": {
+    "cause": {
+      "description": "`seq` of an earlier event in the same `(sessionId, origin)` that\ncausally produced this one.",
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32",
+      "minimum": 0
+    },
+    "encounterId": {
+      "description": "Present iff this event occurred within an active encounter.",
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "origin": {
+      "description": "Producer provenance: `\"server\"` or `\"client:<playerLocalId>\"`.",
+      "type": "string"
+    },
+    "seq": {
+      "description": "Monotonically increasing counter, unique within `(sessionId, origin)`.",
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    },
+    "sessionId": {
+      "description": "Stable per producer process; new on each game launch.",
+      "type": "string"
+    },
+    "ts": {
+      "description": "ISO-8601 UTC timestamp with millisecond precision.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "v": {
+      "description": "Schema version, fixed at `\"1.0\"` for this revision.",
+      "type": "string"
+    },
+    "worldId": {
+      "description": "Stable identifier of the Terraria world / game instance.",
+      "type": "string"
+    }
+  },
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/SessionStartData"
+        },
+        "type": {
+          "type": "string",
+          "const": "session.start"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/SessionEndData"
+        },
+        "type": {
+          "type": "string",
+          "const": "session.end"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/EncounterStartData"
+        },
+        "type": {
+          "type": "string",
+          "const": "encounter.start"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/EncounterUpdateData"
+        },
+        "type": {
+          "type": "string",
+          "const": "encounter.update"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/EncounterEndData"
+        },
+        "type": {
+          "type": "string",
+          "const": "encounter.end"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/EntityDeclareData"
+        },
+        "type": {
+          "type": "string",
+          "const": "entity.declare"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/EntityUpdateData"
+        },
+        "type": {
+          "type": "string",
+          "const": "entity.update"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/EntityDeathData"
+        },
+        "type": {
+          "type": "string",
+          "const": "entity.death"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/DamageData"
+        },
+        "type": {
+          "type": "string",
+          "const": "damage"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/HealData"
+        },
+        "type": {
+          "type": "string",
+          "const": "heal"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/AbsorbData"
+        },
+        "type": {
+          "type": "string",
+          "const": "absorb"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/ResourceSnapshotData"
+        },
+        "type": {
+          "type": "string",
+          "const": "resource.snapshot"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/StatusApplyData"
+        },
+        "type": {
+          "type": "string",
+          "const": "status.apply"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/StatusRefreshData"
+        },
+        "type": {
+          "type": "string",
+          "const": "status.refresh"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/StatusStackData"
+        },
+        "type": {
+          "type": "string",
+          "const": "status.stack"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/StatusRemoveData"
+        },
+        "type": {
+          "type": "string",
+          "const": "status.remove"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/CastBeginData"
+        },
+        "type": {
+          "type": "string",
+          "const": "cast.begin"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/CastEndData"
+        },
+        "type": {
+          "type": "string",
+          "const": "cast.end"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/LootDropData"
+        },
+        "type": {
+          "type": "string",
+          "const": "loot.drop"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/LootPickupData"
+        },
+        "type": {
+          "type": "string",
+          "const": "loot.pickup"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/PositionSnapshotData"
+        },
+        "type": {
+          "type": "string",
+          "const": "position.snapshot"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/ChatData"
+        },
+        "type": {
+          "type": "string",
+          "const": "chat"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "data": {
+          "$ref": "#/$defs/SystemMessageData"
+        },
+        "type": {
+          "type": "string",
+          "const": "system.message"
+        }
+      },
+      "required": [
+        "type",
+        "data"
+      ]
+    }
+  ],
+  "required": [
+    "v",
+    "ts",
+    "seq",
+    "sessionId",
+    "origin",
+    "worldId"
+  ],
+  "unevaluatedProperties": false,
+  "$defs": {
+    "AbsorbData": {
+      "type": "object",
+      "properties": {
+        "actor": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "source": {
+          "type": "string"
+        },
+        "via": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Via"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "actor",
+        "amount",
+        "source"
+      ]
+    },
+    "CastBeginData": {
+      "type": "object",
+      "properties": {
+        "ability": {
+          "type": "string"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Position"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "actor",
+        "ability"
+      ]
+    },
+    "CastEndData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "reason": {
+          "$ref": "#/$defs/CastEndReason"
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "reason"
+      ]
+    },
+    "CastEndReason": {
+      "type": "string",
+      "enum": [
+        "released",
+        "interrupted",
+        "out-of-mana",
+        "out-of-ammo",
+        "completed",
+        "death"
+      ]
+    },
+    "ChatChannel": {
+      "type": "string",
+      "enum": [
+        "say",
+        "team",
+        "whisper",
+        "broadcast"
+      ]
+    },
+    "ChatData": {
+      "type": "object",
+      "properties": {
+        "channel": {
+          "$ref": "#/$defs/ChatChannel"
+        },
+        "content": {
+          "type": "string"
+        },
+        "from": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "to": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "channel",
+        "content"
+      ]
+    },
+    "DamageData": {
+      "type": "object",
+      "properties": {
+        "actor": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "castId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "crit": {
+          "type": "boolean"
+        },
+        "geometry": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Geometry"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/DamageKind"
+        },
+        "mitigation": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Mitigation"
+          }
+        },
+        "overkill": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Position"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "target": {
+          "type": "string"
+        },
+        "via": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Via"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "actor",
+        "target",
+        "amount",
+        "crit",
+        "kind"
+      ]
+    },
+    "DamageKind": {
+      "type": "string",
+      "enum": [
+        "hit",
+        "tick",
+        "splash",
+        "reflect",
+        "environmental"
+      ]
+    },
+    "EncounterEndCause": {
+      "type": "string",
+      "enum": [
+        "all-members-dead",
+        "all-players-dead",
+        "despawned",
+        "world-exit",
+        "manual"
+      ]
+    },
+    "EncounterEndData": {
+      "type": "object",
+      "properties": {
+        "cause": {
+          "$ref": "#/$defs/EncounterEndCause"
+        },
+        "id": {
+          "type": "string"
+        },
+        "outcome": {
+          "$ref": "#/$defs/EncounterOutcome"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "outcome",
+        "cause"
+      ]
+    },
+    "EncounterKind": {
+      "type": "string",
+      "enum": [
+        "boss",
+        "event",
+        "invasion"
+      ]
+    },
+    "EncounterOutcome": {
+      "type": "string",
+      "enum": [
+        "victory",
+        "defeat",
+        "abandoned"
+      ]
+    },
+    "EncounterStartData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/EncounterKind"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "name"
+      ]
+    },
+    "EncounterUpdateData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "members.add": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "members.remove": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ]
+    },
+    "EntityDeathData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Position"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ]
+    },
+    "EntityDeclareData": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/EntityKind"
+        },
+        "maxHp": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "name": {
+          "type": "string"
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "position": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Position"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "name"
+      ]
+    },
+    "EntityKind": {
+      "type": "string",
+      "enum": [
+        "player",
+        "npc",
+        "proj",
+        "minion",
+        "sentry",
+        "pet",
+        "env"
+      ]
+    },
+    "EntityUpdateData": {
+      "description": "`entity.update` carries only the fields that changed; everything except\n`id` is optional. Transient conditions belong in `status.*`, not here.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EntityKind"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maxHp": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ]
+    },
+    "Geometry": {
+      "description": "Area-of-effect shape, with kind-specific parameters.",
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "anchor": {
+              "$ref": "#/$defs/Point2"
+            },
+            "height": {
+              "type": "number",
+              "format": "double"
+            },
+            "kind": {
+              "type": "string",
+              "const": "rect"
+            },
+            "width": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "width",
+            "height",
+            "anchor"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "center": {
+              "$ref": "#/$defs/Point2"
+            },
+            "kind": {
+              "type": "string",
+              "const": "circle"
+            },
+            "radius": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "radius",
+            "center"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "angleRad": {
+              "type": "number",
+              "format": "double"
+            },
+            "direction": {
+              "type": "number",
+              "format": "double"
+            },
+            "kind": {
+              "type": "string",
+              "const": "cone"
+            },
+            "origin": {
+              "$ref": "#/$defs/Point2"
+            },
+            "radius": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "radius",
+            "angleRad",
+            "direction",
+            "origin"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "end": {
+              "$ref": "#/$defs/Point2"
+            },
+            "kind": {
+              "type": "string",
+              "const": "line"
+            },
+            "length": {
+              "type": "number",
+              "format": "double"
+            },
+            "start": {
+              "$ref": "#/$defs/Point2"
+            },
+            "width": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "length",
+            "width",
+            "start",
+            "end"
+          ]
+        }
+      ]
+    },
+    "HealData": {
+      "type": "object",
+      "properties": {
+        "actor": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "castId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/HealKind"
+        },
+        "overheal": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "position": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Position"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target": {
+          "type": "string"
+        },
+        "via": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Via"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "actor",
+        "target",
+        "amount",
+        "kind"
+      ]
+    },
+    "HealKind": {
+      "type": "string",
+      "enum": [
+        "potion",
+        "regen",
+        "lifesteal",
+        "ability",
+        "set-bonus",
+        "buff-tick",
+        "natural"
+      ]
+    },
+    "LootDropData": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LootItem"
+          }
+        },
+        "position": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Position"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "items"
+      ]
+    },
+    "LootItem": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "name": {
+          "type": "string"
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "count"
+      ]
+    },
+    "LootPickupData": {
+      "type": "object",
+      "properties": {
+        "actor": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/LootItem"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "actor",
+        "items"
+      ]
+    },
+    "Mitigation": {
+      "description": "Pre-mitigation damage reduction, attributed to a specific mechanism.",
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "by": {
+          "description": "Optional absorbing entity for ally-shield absorbs (e.g. Power Word: Shield\nin WoW, Brain of Confusion redirect in Terraria).",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/MitigationKind"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "amount"
+      ]
+    },
+    "MitigationKind": {
+      "type": "string",
+      "enum": [
+        "block",
+        "dodge",
+        "parry",
+        "resist",
+        "absorb"
+      ]
+    },
+    "Point2": {
+      "type": "object",
+      "properties": {
+        "x": {
+          "type": "number",
+          "format": "double"
+        },
+        "y": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y"
+      ]
+    },
+    "Position": {
+      "type": "object",
+      "properties": {
+        "facing": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int8",
+          "maximum": 127,
+          "minimum": -128
+        },
+        "rotation": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "vx": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "vy": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "format": "double"
+        },
+        "x": {
+          "type": "number",
+          "format": "double"
+        },
+        "y": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y"
+      ]
+    },
+    "PositionEntry": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "position": {
+          "$ref": "#/$defs/Position"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "position"
+      ]
+    },
+    "PositionSnapshotData": {
+      "type": "object",
+      "properties": {
+        "entities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PositionEntry"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "entities"
+      ]
+    },
+    "ProducerInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ]
+    },
+    "ResourceSnapshotData": {
+      "type": "object",
+      "properties": {
+        "entity": {
+          "type": "string"
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ResourceTuple"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "entity",
+        "resources"
+      ]
+    },
+    "ResourceTuple": {
+      "description": "One resource value (HP, mana, or game-specific kind) on a `resource.snapshot` event.",
+      "type": "object",
+      "properties": {
+        "kind": {
+          "description": "Recognized v1 kinds: `\"hp\"`, `\"mana\"`. Additional kinds may appear,\ngame-namespaced when not universally meaningful.",
+          "type": "string"
+        },
+        "max": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "value": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "value",
+        "max"
+      ]
+    },
+    "SessionEndData": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "$ref": "#/$defs/SessionEndReason"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "reason"
+      ]
+    },
+    "SessionEndReason": {
+      "type": "string",
+      "enum": [
+        "world-exit",
+        "crash",
+        "manual",
+        "process-exit"
+      ]
+    },
+    "SessionStartData": {
+      "type": "object",
+      "properties": {
+        "gameVersion": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "producer": {
+          "$ref": "#/$defs/ProducerInfo"
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "producer"
+      ]
+    },
+    "Severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warn",
+        "error"
+      ]
+    },
+    "StatusApplyData": {
+      "type": "object",
+      "properties": {
+        "by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "durationMs": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "kind": {
+          "$ref": "#/$defs/StatusKind"
+        },
+        "stacks": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "status": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "status",
+        "kind"
+      ]
+    },
+    "StatusKind": {
+      "type": "string",
+      "enum": [
+        "buff",
+        "debuff",
+        "neutral"
+      ]
+    },
+    "StatusRefreshData": {
+      "type": "object",
+      "properties": {
+        "by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "durationMs": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "kind": {
+          "$ref": "#/$defs/StatusKind"
+        },
+        "stacks": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "int32"
+        },
+        "status": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "status",
+        "kind",
+        "durationMs"
+      ]
+    },
+    "StatusRemoveData": {
+      "type": "object",
+      "properties": {
+        "by": {
+          "description": "Required iff `reason == Dispelled`.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/StatusKind"
+        },
+        "reason": {
+          "$ref": "#/$defs/StatusRemoveReason"
+        },
+        "status": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "status",
+        "kind",
+        "reason"
+      ]
+    },
+    "StatusRemoveReason": {
+      "type": "string",
+      "enum": [
+        "expired",
+        "removed",
+        "dispelled"
+      ]
+    },
+    "StatusStackData": {
+      "type": "object",
+      "properties": {
+        "by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/StatusKind"
+        },
+        "stacks": {
+          "description": "Absolute new stack count, not a delta.",
+          "type": "integer",
+          "format": "int32"
+        },
+        "status": {
+          "type": "string"
+        },
+        "target": {
+          "type": "string"
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "target",
+        "status",
+        "kind",
+        "stacks"
+      ]
+    },
+    "SystemMessageData": {
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "x": true
+      },
+      "additionalProperties": false,
+      "required": [
+        "severity",
+        "content"
+      ]
+    },
+    "Via": {
+      "description": "Ephemeral causal intermediate (projectile, set-bonus proc, summoned construct).\nRecursive via `intermediate` to support multi-step chains\n(e.g. armor proc → spectral orb → heal).",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "intermediate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Via"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kind": {
+          "$ref": "#/$defs/ViaKind"
+        },
+        "name": {
+          "type": "string"
+        },
+        "owner": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "weapon": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "name"
+      ]
+    },
+    "ViaKind": {
+      "type": "string",
+      "enum": [
+        "projectile",
+        "armor-set",
+        "accessory",
+        "trap",
+        "other"
+      ]
+    }
+  }
+}

@@ -4,8 +4,8 @@
   <Import Project="..\tModLoader.targets"/>
   <!-- General -->
   <PropertyGroup>
-		
-	</PropertyGroup>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
   <!-- References -->
   <ItemGroup>
 		
