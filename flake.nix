@@ -15,6 +15,7 @@
           omnisharp-roslyn
           nodejs_24
           bun
+          gh
         ];
 
         shellHook = ''
