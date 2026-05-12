@@ -38,6 +38,7 @@ public sealed class DamageHookGlobalNPC : GlobalNPC
 
         var overkill = ComputeOverkill(damageDone);
         var castId = player.GetModPlayer<Mods.BattleLabPlayer>().CurrentCastId;
+        var itemName = Lang.GetItemNameValue(item.type);
 
         Tracking.Emit(EventType.Damage, new DamageData
         {
@@ -48,6 +49,13 @@ public sealed class DamageHookGlobalNPC : GlobalNPC
             Kind = DamageKind.Hit,
             Overkill = overkill,
             CastId = castId,
+            Via = new Via
+            {
+                Kind = ViaKind.Other,
+                Name = itemName,
+                Owner = actorId,
+                Weapon = itemName,
+            },
             Position = new Position
             {
                 X = player.position.X,
@@ -59,7 +67,7 @@ public sealed class DamageHookGlobalNPC : GlobalNPC
                 ["terraria"] = new JsonObject
                 {
                     ["itemType"] = item.type,
-                    ["itemName"] = Lang.GetItemNameValue(item.type),
+                    ["itemName"] = itemName,
                     ["damageClass"] = item.DamageType.DisplayName.Value,
                     ["hitDirection"] = hit.HitDirection,
                     ["knockback"] = SafeNumber.Json(hit.Knockback),
