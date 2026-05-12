@@ -3,103 +3,150 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
+using System.Text.Json.Serialization;
+using BattleLabCompanion.Wire;
+using BattleLabCompanion.Wire.Payloads;
 using Microsoft.Xna.Framework;
 using Terraria;
+using Terraria.ID;
 using Terraria.ModLoader;
 
-namespace BattleLabCompanion.Systems
+namespace BattleLabCompanion.Systems;
+
+public sealed class Tracking : ModSystem
 {
-    public class Tracking : ModSystem
+    private static Tracking? _singleton;
+
+    private static readonly JsonSerializerOptions JsonOpts = new()
     {
-        private static Tracking _singleton;
-        private static JsonSerializerOptions _serializeOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.KebabCaseLower
-        };
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.KebabCaseLower) },
+    };
 
-        private StreamWriter _writer;
-        private object _lock = new object();
+    private const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
+    private const string LogFilenameFormat = "yyyy-MM-ddTHH-mm-ssZ";
 
-        public override void Load()
+    private StreamWriter? _writer;
+    private string _sessionId = "";
+    private string _origin = "";
+    private string _worldId = "";
+    private uint _seq;
+    private readonly object _lock = new();
+
+    public override void Load() => _singleton = this;
+    public override void Unload() => _singleton = null;
+
+    public override void OnWorldLoad()
+    {
+        Initialize();
+        EmitSessionStart();
+    }
+
+    public override void OnWorldUnload()
+    {
+        EmitSessionEnd(SessionEndReason.WorldExit);
+        Shutdown();
+    }
+
+    private void Initialize()
+    {
+        _sessionId = $"sess:{Guid.NewGuid():N}";
+        _seq = 0;
+        _worldId = $"world:{Main.ActiveWorldFileData.UniqueId:N}";
+        _origin = ResolveOrigin();
+
+        var player = Main.LocalPlayer.name;
+        var world = Main.worldName;
+        var target = Path.Combine(Main.SavePath, "Mods", "BattleLabCompanion", player, world);
+        Directory.CreateDirectory(target);
+        var timestamp = DateTime.UtcNow.ToString(LogFilenameFormat, CultureInfo.InvariantCulture);
+        var log = Path.Combine(target, $"{timestamp}.jsonl");
+
+        try
         {
-            _singleton = this;
+            _writer = new StreamWriter(log, append: true, encoding: Encoding.UTF8);
         }
-
-        public override void Unload()
+        catch (Exception ex)
         {
-            _singleton = null;
+            Main.NewText($"[BattleLabCompanion] Failed to open log: {ex.Message}", Color.Red);
         }
+    }
 
-        public override void OnWorldLoad()
+    private void Shutdown()
+    {
+        lock (_lock)
         {
-            Initialize();
+            _writer?.Flush();
+            _writer?.Dispose();
+            _writer = null;
         }
+    }
 
-        public override void OnWorldUnload()
-        {
-            ShutDown();
-        }
+    private static string ResolveOrigin()
+    {
+        if (Main.netMode == NetmodeID.Server)
+            return "server";
 
-        private void Initialize()
+        var localId = EntityRegistry.Resolve(Main.LocalPlayer);
+        var stripped = localId is null ? "0" : StripKindPrefix(localId);
+        return $"client:{stripped}";
+    }
+
+    private static string StripKindPrefix(string id)
+    {
+        var colon = id.IndexOf(':');
+        return colon < 0 ? id : id[(colon + 1)..];
+    }
+
+    public static uint Emit<TData>(string type, TData data, uint? cause = null, string? encounterId = null)
+    {
+        var s = _singleton;
+        if (s is null) return 0;
+
+        lock (s._lock)
         {
-            var player = Main.LocalPlayer.name;
-            var world = Main.worldName;
-            var target = Path.Combine(Main.SavePath, "Mods", "BattleLabCompanion", player, world);
-            Directory.CreateDirectory(target);
-            var timestamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-            var log = Path.Combine(target, $"{timestamp}.jsonl");
+            if (s._writer is null) return 0;
+
+            uint seq = s._seq++;
+            var ev = new Event<TData>
+            {
+                V = SchemaVersion.V1,
+                Ts = DateTime.UtcNow.ToString(TimestampFormat, CultureInfo.InvariantCulture),
+                Seq = seq,
+                SessionId = s._sessionId,
+                Origin = s._origin,
+                WorldId = s._worldId,
+                EncounterId = encounterId,
+                Cause = cause,
+                Type = type,
+                Data = data!,
+            };
 
             try
             {
-                _writer = new StreamWriter(log, append: true, encoding: Encoding.UTF8);
-                Track("load", new { player, world });
+                s._writer.WriteLine(JsonSerializer.Serialize(ev, JsonOpts));
+                s._writer.Flush();
             }
             catch (Exception ex)
             {
-                Main.NewText($"[BattleLabCompanion] Failed to initialize Logger: {ex.Message}", Color.Red);
+                Main.NewText($"[BattleLabCompanion] Write failed: {ex.Message}", Color.Red);
             }
-        }
 
-        private void Write(string line)
-        {
-            Task.Run(() =>
-            {
-                lock (_lock)
-                {
-                    try
-                    {
-                        _writer.WriteLine(line);
-                        _writer.Flush();
-                    }
-                    catch (Exception ex)
-                    {
-                        Main.NewText($"[BattleLabCompanion] Failed to write log entry: {ex.Message}", Color.Red);
-                    }
-                }
-            });
-        }
-
-        private void ShutDown()
-        {
-            Track("unload", new { Main.LocalPlayer.name, Main.worldName });
-            _writer.Flush();
-            _writer.Close();
-        }
-
-        public static void Track<T>(string @event, T data)
-        {
-            if (_singleton == null)
-                return;
-
-            var o = new
-            {
-                timestamp = DateTime.UtcNow.ToString("o", CultureInfo.InvariantCulture),
-                type = @event,
-                data,
-            };
-
-            _singleton.Write(JsonSerializer.Serialize(o, _serializeOptions));
+            return seq;
         }
     }
+
+    private static void EmitSessionStart() => Emit(EventType.SessionStart, new SessionStartData
+    {
+        Producer = new ProducerInfo
+        {
+            Name = "BattleLabCompanion",
+            Version = ModContent.GetInstance<BattleLabCompanion>().Version.ToString(),
+        },
+        GameVersion = $"Terraria {Main.versionNumber}",
+    });
+
+    private static void EmitSessionEnd(SessionEndReason reason) =>
+        Emit(EventType.SessionEnd, new SessionEndData { Reason = reason });
 }
