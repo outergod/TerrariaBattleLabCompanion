@@ -90,7 +90,7 @@ public sealed class BattleLabPlayer : ModPlayer
                 ["terraria"] = new JsonObject
                 {
                     ["hitDirection"] = info.HitDirection,
-                    ["knockback"] = info.Knockback,
+                    ["knockback"] = SafeNumber.Json(info.Knockback),
                     ["cooldownCounter"] = info.CooldownCounter,
                     ["pvp"] = info.PvP,
                     ["sourceDamage"] = info.SourceDamage,

@@ -62,7 +62,7 @@ public sealed class DamageHookGlobalNPC : GlobalNPC
                     ["itemName"] = Lang.GetItemNameValue(item.type),
                     ["damageClass"] = item.DamageType.DisplayName.Value,
                     ["hitDirection"] = hit.HitDirection,
-                    ["knockback"] = hit.Knockback,
+                    ["knockback"] = SafeNumber.Json(hit.Knockback),
                     ["instantKill"] = hit.InstantKill,
                 },
             },

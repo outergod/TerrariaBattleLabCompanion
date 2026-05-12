@@ -21,7 +21,14 @@ public sealed class Tracking : ModSystem
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.KebabCaseLower) },
+        Converters =
+        {
+            new JsonStringEnumConverter(JsonNamingPolicy.KebabCaseLower),
+            new SafeDoubleConverter(),
+            new SafeFloatConverter(),
+            new SafeNullableDoubleConverter(),
+            new SafeNullableFloatConverter(),
+        },
     };
 
     private const string TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
