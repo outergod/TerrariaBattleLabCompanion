@@ -117,7 +117,7 @@ public sealed class Tracking : ModSystem
                 SessionId = s._sessionId,
                 Origin = s._origin,
                 WorldId = s._worldId,
-                EncounterId = encounterId,
+                EncounterId = encounterId ?? EncounterTracker.ActiveEncounterId,
                 Cause = cause,
                 Type = type,
                 Data = data!,

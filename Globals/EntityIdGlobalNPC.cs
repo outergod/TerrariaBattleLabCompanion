@@ -34,8 +34,31 @@ public sealed class EntityIdGlobalNPC : GlobalNPC
                 {
                     ["npcType"] = npc.type,
                     ["slot"] = npc.whoAmI,
+                    ["boss"] = npc.boss,
                 },
             },
         });
+
+        if (npc.boss) EncounterTracker.OnBossSpawn(npc, EntityLocalId);
+    }
+
+    public override void OnKill(NPC npc)
+    {
+        if (EntityLocalId is null) return;
+
+        Tracking.Emit(EventType.EntityDeath, new EntityDeathData
+        {
+            Id = EntityLocalId,
+            Position = new Position { X = npc.position.X, Y = npc.position.Y },
+            X = new JsonObject
+            {
+                ["terraria"] = new JsonObject
+                {
+                    ["npcType"] = npc.type,
+                },
+            },
+        });
+
+        EncounterTracker.OnNpcKilled(EntityLocalId);
     }
 }
